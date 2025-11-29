@@ -1,10 +1,24 @@
 ---
 
-# 🛠️ DEBUG FOG — NFS, Capture & Déploiement (Cheat Sheet Complète)
+# 🛠️ DEBUG FOG — NFS, Capture & Déploiement
 
-## 📌 1. Vérifier `/etc/exports` (Fog Storage)
+## 📖 Sommaire (Chapitres)
 
-### ❌ Ancienne configuration (posait problème : `/images` en RO)
+1. **Vérifier /etc/exports (NFS Storage)**
+2. **Droits corrects /images**
+3. **Recharger NFS proprement**
+4. **Mode Debug (PXE)**
+5. **Tests Réseau & HTTP**
+6. **Tester le montage NFS**
+7. **Commandes utiles côté MASTER**
+8. **Commandes utiles côté STORAGE**
+9. **Astuces rapides**
+
+---
+
+# 1️⃣ Vérifier `/etc/exports` (Fog Storage)
+
+### ❌ Ancienne configuration (problème : `/images` en RO)
 
 ```bash
 /images *(ro,sync,no_wdelay,subtree_check,insecure_locks,all_squash,anonuid=1001,anongid=1001,fsid=0)
@@ -20,11 +34,11 @@
 
 ✔ `rw` obligatoire
 ✔ `no_subtree_check` évite les freezes NFS
-✔ `async` améliore la vitesse de capture
+✔ `async` accélère la capture
 
 ---
 
-## 📌 2. Droits corrects `/images`
+# 2️⃣ Droits corrects `/images`
 
 ```bash
 sudo chown -R fogproject:fogproject /images
@@ -33,7 +47,7 @@ sudo chmod -R 777 /images
 
 ---
 
-## 📌 3. Recharger NFS proprement
+# 3️⃣ Recharger NFS proprement
 
 ```bash
 sudo exportfs -ra
@@ -43,13 +57,11 @@ sudo exportfs -v
 
 ---
 
-# 🧪 Mode Debug (Client PXE)
+# 4️⃣ Mode Debug (Client PXE)
 
-## Activer le Debug Task
-
-1. FOG Web UI → Host → Capture/Deploy
-2. Cocher : **Schedule as a debug task**
-3. Boot PXE → tu arrives sur :
+1. FOG Web UI → Host
+2. Capture/Deploy → **Schedule as a debug task**
+3. Boot PXE → Terminal :
 
 ```
 [root@fogclient ~]#
@@ -57,7 +69,7 @@ sudo exportfs -v
 
 ---
 
-# 🌐 Tests Réseau & HTTP
+# 5️⃣ Tests Réseau & HTTP
 
 ```bash
 wget --spider http://<FOG-MASTER-IP>/fog/service/ipxe/boot.php
@@ -69,22 +81,22 @@ Vérifier que :
 
 ---
 
-# 📦 Tester Montage NFS (Mount Failed)
+# 6️⃣ Tester le montage NFS
 
 ```bash
 mkdir -p /test
 mount -o nolock <FOG-STORAGE-IP>:/images/dev /test
 ```
 
-### Causes fréquentes
+**Erreurs fréquentes :**
 
-* `Permission denied` → mauvais `/etc/exports` ou permissions
-* `Connection refused` → service NFS down
-* Freeze capture → mot de passe SQL contenant `#` dans `.fogsettings`
+* `Permission denied` → /etc/exports mauvais
+* `Connection refused` → NFS down
+* Freeze capture → mot de passe SQL contenant `#`
 
 ---
 
-# 🖥️ Commandes utiles côté MASTER
+# 7️⃣ Commandes utiles côté MASTER
 
 ```bash
 tail -f /var/log/apache2/error.log
@@ -95,7 +107,7 @@ systemctl status FOGTaskScheduler
 
 ---
 
-# 🗄️ Commandes utiles côté STORAGE
+# 8️⃣ Commandes utiles côté STORAGE
 
 ```bash
 exportfs -ra
@@ -109,12 +121,12 @@ chown -R fogproject:fogproject /images
 
 ---
 
-# ⚡ Astuces rapides
+# 9️⃣ Astuces rapides
 
-* Vérifier **Web Host** & **TFTP Host** dans FOG Settings
-* Tester un client PXE avec **E1000e** + Secure Boot **OFF**
-* Si réplication lente → vérifier **FOGImageReplicator**
+* Vérifier **Web Host** & **TFTP Host**
+* Tester VM avec **E1000e** & Secure Boot **OFF**
+* Réplication lente → regarder **FOGImageReplicator**
 
 ---
 
-Si tu veux, je te génère **un fichier .md téléchargeable**, ou je te le mets dans **un ZIP GitHub**.
+Si tu veux, je te fais **un fichier .md téléchargeable** propre à importer dans GitHub.
