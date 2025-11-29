@@ -1,7 +1,3 @@
-Voici **le fichier complet en Markdown pur**, prêt à copier-coller :
-
----
-
 ````markdown
 # 🛠️ DEBUG FOG — NFS, Capture & Déploiement (Cheat Sheet Complète)
 
