@@ -26,6 +26,3 @@ sous ESXi avec un réseau privé isolé (VLAN FOG).
 3. Avant d'effectuer des captures, suivre les étapes de `DEBUG_CHEAT_SHEET.md`.
 4. Pour la vidéo : présenter l'architecture, puis montrer la configuration réseau, l'installation du Storage Node,
    et finir par une capture en mode debug.
-
-Bonne mise en place — si tu veux, je peux aussi générer un `index.md` pour une page GitHub Pages ou un `docker-compose.yml`
-pour des tests locaux (optionnel).
