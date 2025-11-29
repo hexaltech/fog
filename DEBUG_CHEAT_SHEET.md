@@ -1,63 +1,138 @@
-# 🛠️ Guide de Dépannage & Commandes Debug
+Voici **le fichier complet en Markdown pur**, prêt à copier-coller :
 
-Fiche rapide pour diagnostiquer problèmes de capture / déploiement FOG.
+---
 
-## Mode Debug (Client PXE)
-1. Dans l'interface FOG → Host → Capture/Deploy → cocher **Schedule as a debug task**.
-2. Boote le client en PXE : tu obtiendras un shell `[root@fogclient ~]#`.
+````markdown
+# 🛠️ DEBUG FOG — NFS, Capture & Déploiement (Cheat Sheet Complète)
 
-## Tests réseau & HTTP
+## 📌 1. Vérifier /etc/exports (Fog Storage)
+
+### Ancienne configuration que tu avais :
 ```bash
-# Tester l'accès à la ressource iPXE
-wget --spider http://192.168.66.251/fog/service/ipxe/boot.php
+/images *(ro,sync,no_wdelay,subtree_check,insecure_locks,all_squash,anonuid=1001,anongid=1001,fsid=0)
+/images/dev *(rw,async,no_wdelay,subtree_check,all_squash,anonuid=1001,anongid=1001,fsid=1)
+````
 
-# Vérifier les arguments de boot
+Cette config bloque la capture car `/images` est en **RO**.
+
+### Configuration corrigée recommandée :
+
+```bash
+/images *(rw,async,no_wdelay,no_subtree_check,insecure_locks,all_squash,anonuid=1001,anongid=1001,fsid=0)
+/images/dev *(rw,async,no_wdelay,no_subtree_check,all_squash,anonuid=1001,anongid=1001,fsid=1)
+```
+
+* `rw` obligatoire
+* `no_subtree_check` évite les freezes NFS
+* `async` améliore la vitesse de capture
+
+---
+
+## 📌 2. Droits corrects /images
+
+```bash
+sudo chown -R fogproject:fogproject /images
+sudo chmod -R 777 /images
+```
+
+---
+
+## 📌 3. Recharger NFS proprement
+
+```bash
+sudo exportfs -ra
+sudo systemctl restart nfs-kernel-server
+sudo exportfs -v
+```
+
+Tu dois voir **no_subtree_check** sur les deux exports.
+
+---
+
+# 🧪 Mode Debug (Client PXE)
+
+## Activer le Debug Task
+
+1. FOG Web UI → Host → Capture/Deploy
+2. Cocher : **Schedule as a debug task**
+3. Boot PXE → tu arrives sur un shell :
+
+```
+[root@fogclient ~]#
+```
+
+---
+
+# 🌐 Tests Réseau & HTTP
+
+```bash
+# Vérifier accès au boot.php
+wget --spider http://<FOG-MASTER-IP>/fog/service/ipxe/boot.php
+
+# Voir les arguments envoyés au client
 cat /proc/cmdline
-# Chercher : web=http://192.168.66.251/fog/
+# Chercher : web=http://<FOG-MASTER-IP>/fog/
 ```
 
-## Montage NFS (Mount Failed)
+---
+
+# 📦 Tester Montage NFS (Mount Failed)
+
 ```bash
-# Test de montage manuel
 mkdir -p /test
-mount -o nolock 192.168.66.252:/images/dev /test
-
-# Si ok : la commande ne renvoie rien. Sinon lire l'erreur.
+mount -o nolock <FOG-STORAGE-IP>:/images/dev /test
 ```
 
-Causes fréquentes :
-- `Permission denied` → vérifier `/etc/exports` (no_root_squash) et droits sur /images.
-- `Connection refused` → service NFS arrêté sur Storage Node.
-- `Stalled during boot` → mot de passe SQL avec `#` dans `/opt/fog/.fogsettings`.
+### Si erreur :
 
-## Commandes utiles côté Master
+* `Permission denied` → problème de /etc/exports ou permissions
+* `Connection refused` → NFS down sur le Storage
+* Freeze PXE ou tâches bloquées → mot de passe SQL contenant `#` dans `.fogsettings`
+
+---
+
+# 🖥️ Commandes utiles côté MASTER
+
 ```bash
 # Logs Apache
 sudo tail -f /var/log/apache2/error.log
 
-# Redémarrer DHCP (si géré)
+# Redémarrer DHCP (si FOG gère le DHCP)
 sudo systemctl restart isc-dhcp-server
 
-# Vérifier FOG services
+# Services FOG
 sudo systemctl status FOGImageReplicator
 sudo systemctl status FOGTaskScheduler
 ```
 
-## Commandes utiles côté Storage
+---
+
+# 🗄️ Commandes utiles côté STORAGE
+
 ```bash
-# Re-exporter et redémarrer NFS
+# Recharger NFS
 sudo exportfs -ra
 sudo systemctl restart nfs-kernel-server
-
-# Vérifier exports
 sudo exportfs -v
 
-# Droits /images
-sudo ls -la /images
-sudo chmod -R 777 /images
-sudo chown -R fogproject:fogproject /images
+# Vérifier permissions
+ls -la /images
+chmod -R 777 /images
+chown -R fogproject:fogproject /images
 ```
 
-## Astuces rapides
-- Si l'IP Web n'est pas la bonne dans FOG → le client ne peut pas check-in. Vérifier FOG Settings → Web Host / TFTP Host.
-- En cas d'erreurs étranges sur le boot PXE, tester avec une VM temporaire client en E1000e et secure boot désactivé.
+---
+
+# ⚡ Astuces rapides
+
+* Si l’IP Web dans FOG est incorrecte → le client ne check-in pas.
+  → FOG Settings → Web Host / TFTP Host
+* Tester une VM client en **E1000e** avec Secure Boot OFF pour diagnostiquer le PXE.
+* Si réplication KO ou lente → vérifier `FOGImageReplicator` côté Master.
+
+```
+
+---
+
+Si tu veux, je te le génère aussi en **fichier téléchargeable (.md)** ou en **PDF**.
+```
