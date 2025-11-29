@@ -1,41 +1,35 @@
-```markdown
+---
+
 # 🛠️ DEBUG FOG — NFS, Capture & Déploiement (Cheat Sheet Complète)
 
-## 📌 1. Vérifier /etc/exports (Fog Storage)
+## 📌 1. Vérifier `/etc/exports` (Fog Storage)
 
-### Ancienne configuration que tu avais :
-```
+### ❌ Ancienne configuration (posait problème : `/images` en RO)
 
 ```bash
 /images *(ro,sync,no_wdelay,subtree_check,insecure_locks,all_squash,anonuid=1001,anongid=1001,fsid=0)
 /images/dev *(rw,async,no_wdelay,subtree_check,all_squash,anonuid=1001,anongid=1001,fsid=1)
 ```
 
-```
-
-Cette config bloque la capture car `/images` est en **RO**.
-
-### Configuration corrigée recommandée :
-```
+### ✅ Configuration corrigée recommandée
 
 ```bash
 /images *(rw,async,no_wdelay,no_subtree_check,insecure_locks,all_squash,anonuid=1001,anongid=1001,fsid=0)
 /images/dev *(rw,async,no_wdelay,no_subtree_check,all_squash,anonuid=1001,anongid=1001,fsid=1)
 ```
 
-````
-
-- `rw` obligatoire  
-- `no_subtree_check` évite les freezes NFS  
-- `async` améliore la vitesse de capture  
+✔ `rw` obligatoire
+✔ `no_subtree_check` évite les freezes NFS
+✔ `async` améliore la vitesse de capture
 
 ---
 
-## 📌 2. Droits corrects /images
+## 📌 2. Droits corrects `/images`
+
 ```bash
 sudo chown -R fogproject:fogproject /images
 sudo chmod -R 777 /images
-````
+```
 
 ---
 
@@ -82,10 +76,10 @@ mkdir -p /test
 mount -o nolock <FOG-STORAGE-IP>:/images/dev /test
 ```
 
-### Causes fréquentes :
+### Causes fréquentes
 
 * `Permission denied` → mauvais `/etc/exports` ou permissions
-* `Connection refused` → NFS down
+* `Connection refused` → service NFS down
 * Freeze capture → mot de passe SQL contenant `#` dans `.fogsettings`
 
 ---
@@ -117,13 +111,10 @@ chown -R fogproject:fogproject /images
 
 # ⚡ Astuces rapides
 
-* Vérifier **Web Host** & **TFTP Host** dans FOG Settings.
-* Tester un client PXE en **E1000e** + Secure Boot OFF.
-* En cas de réplication lente → vérifier `FOGImageReplicator`.
-
-```
+* Vérifier **Web Host** & **TFTP Host** dans FOG Settings
+* Tester un client PXE avec **E1000e** + Secure Boot **OFF**
+* Si réplication lente → vérifier **FOGImageReplicator**
 
 ---
 
-Si tu veux, je peux te générer **le fichier .md téléchargeable** ou **l’ajouter à ton ZIP GitHub**.
-```
+Si tu veux, je te génère **un fichier .md téléchargeable**, ou je te le mets dans **un ZIP GitHub**.
