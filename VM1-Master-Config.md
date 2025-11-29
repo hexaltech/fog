@@ -56,8 +56,3 @@ systemctl status apache2
 systemctl status mysql
 systemctl status nfs-kernel-server  # si stockage local sur la même VM (rare)
 ```
-
-## 4) Conseils pour la vidéo
-- Montrer le vSwitch isolé sur ESXi et expliquer pourquoi pas de gateway sur l'interface FOG.
-- Expliquer le rôle du Master (Web/UI, DB) vs Storage (NFS, images).
-- Lancer une capture en mode **Debug** pour montrer l'interaction client → Master → Storage.
